@@ -736,17 +736,11 @@
                             </tr>
                         </thead>
                         <tbody>
-                            ${products.map(item => {
-                                let priority = '🟢 Baja';
+                           ${products.map(item => {
                                 let priorityColor = '#27ae60';
 
-                                if (item.daysRemaining <= 7) {
-                                    priority = '🔴 Crítica';
-                                    priorityColor = '#e74c3c';
-                                } else if (item.daysRemaining <= 15) {
-                                    priority = '🟡 Alta';
-                                    priorityColor = '#f39c12';
-                                }
+                                if (item.days_remaining <= 7) priorityColor = '#e74c3c';
+                                else if (item.days_remaining <= 15) priorityColor = '#f39c12';
 
                                 return `
                                     <tr>
@@ -754,11 +748,16 @@
                                         <td>${item.batch}</td>
                                         <td>${item.quantity} unidades</td>
                                         <td>${item.expiry_date}</td>
-                                        <td style="color: ${priorityColor}; font-weight: 600;">${item.daysRemaining} días</td>
-                                        <td style="color: ${priorityColor}; font-weight: 600;">${priority}</td>
+                                        <td style="color: ${priorityColor}; font-weight: 600;">
+                                            ${item.days_remaining} días
+                                        </td>
+                                        <td style="color: ${priorityColor}; font-weight: 600;">
+                                            ${item.priority}
+                                        </td>
                                     </tr>
                                 `;
                             }).join('')}
+
                         </tbody>
                     </table>
                 </div>
