@@ -39,7 +39,7 @@ data "aws_ami" "ubuntu" {
 
 # 🔐 Security Group
 resource "aws_security_group" "farm_sg" {
-  name        = "farmacia-sg-v2"
+  name        = "farmacia-sg-v1"
   description = "Allow SSH, microservices and MongoDB"
   vpc_id      = data.aws_vpc.default.id
 
@@ -66,6 +66,14 @@ resource "aws_security_group" "farm_sg" {
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
 
 
 
@@ -108,18 +116,22 @@ until docker info >/dev/null 2>&1; do
   sleep 5
 done
 
-# 📦 Clonar el repositorio
+# 📦 Clonar el repositorio (poner aquí la URL real)
 cd /home/ubuntu
-git clone ${var.repo_url} Calidad
-cd Calidad/farmacia_api
+git clone "https://github.com/JhonChuquino/farmacia-microservices.git" farmacia-microservices
+cd farmacia-microservices
 
 # 🗃️ Crear volumen persistente para MongoDB
 mkdir -p data/db
 chmod -R 777 data/db
 
 # 🚀 Levantar los microservicios
-sudo /usr/local/bin/docker-compose -f docker-compose.yml up -d --build
+/usr/local/bin/docker-compose up -d --build
+
+# 🔑 Ajustar permisos para usuario ubuntu
+chown -R ubuntu:ubuntu /home/ubuntu/farmacia-microservices
 EOF
+
 
   tags = {
     Name = "farmacia_api"

@@ -5,17 +5,17 @@ variable "aws_region" {
 
 variable "instance_type" {
   description = "Tipo de instancia EC2"
-  default     = "t2.micro"
+  default     = "t3.micro"
 }
 
 variable "key_name" {
-  description = "nube"
-  default     = "nube"
+  description = "jhon"
+  default     = "jhon"
 }
 
 variable "repo_url" {
   description = "URL del repositorio GitHub con el proyecto (docker-compose.yml)"
-  default = "https://github.com/JhonChuquino/Calidad.git"
+  default = "https://github.com/JhonChuquino/farmacia-microservices.git"
 }
 
 variable "open_to_world" {
