@@ -1,0 +1,85 @@
+
+services:
+  # 🧩 Base de datos MongoDB
+  mongo:
+    image: mongo:6.0
+    container_name: mongo
+    volumes:
+      - ./data/db:/data/db
+    networks:
+      - backend
+    restart: unless-stopped
+
+  # 🧠 Catálogo de productos
+  catalog-service:
+    build: ./catalog-service
+    container_name: catalog-service
+    environment:
+      - MONGO_URL=mongodb://mongo:27017/pharma_store_db
+    depends_on:
+      - mongo
+    networks:
+      - backend
+    restart: unless-stopped
+
+  # 📦 Inventario
+  inventory-service:
+    build: ./inventory-service
+    container_name: inventory-service
+    environment:
+      - MONGO_URL=mongodb://mongo:27017/pharma_store_db
+    depends_on:
+      - mongo
+    networks:
+      - backend
+    restart: unless-stopped
+
+  # 🧾 Órdenes
+  orders-service:
+    build: ./orders-service
+    container_name: orders-service
+    environment:
+      - MONGO_URL=mongodb://mongo:27017/pharma_store_db
+      - JWT_SECRET=supersecretkey
+    depends_on:
+      - mongo
+    networks:
+      - backend
+    restart: unless-stopped
+
+  # 🔑 Auth Service
+  auth-service:
+    build: ./auth-service
+    container_name: auth-service
+    environment:
+      - MONGO_URL=mongodb://mongo:27017/pharma_store_db
+      - JWT_SECRET=supersecretkey
+      - INVENTORY_URL=http://inventory-service:5000/inventory
+      - CATALOG_URL=http://catalog-service:5000/catalog
+    depends_on:
+      - mongo
+      - inventory-service
+      - catalog-service
+    networks:
+      - backend
+    restart: unless-stopped
+
+  # 🌐 Frontend (Nginx)
+  frontend:
+    image: nginx:alpine
+    container_name: frontend
+    ports:
+      - "80:80"
+    volumes:
+      - ./frontend:/usr/share/nginx/html:ro
+      - ./frontend/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - auth-service
+    networks:
+      - backend
+    restart: unless-stopped
+
+# 🔗 Red interna entre servicios
+networks:
+  backend:
+    driver: bridge

@@ -1,0 +1,46 @@
+# =========================
+# Python
+# =========================
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+.env
+.env.*
+
+# =========================
+# Node / Frontend
+# =========================
+node_modules/
+dist/
+build/
+
+# =========================
+# Docker
+# =========================
+*.log
+data/
+mongo-data/
+
+# =========================
+# IDEs
+# =========================
+.vscode/
+.idea/
+
+# =========================
+# OS
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# Terraform
+# =========================
+.terraform/
+terraform/.terraform/
+*.tfstate
+*.tfstate.backup
+terraform/*.tfstate
+terraform/*.tfstate.backup
