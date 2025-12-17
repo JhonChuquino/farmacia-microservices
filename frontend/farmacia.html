@@ -690,35 +690,26 @@
             document.getElementById('expiringContent').innerHTML = '';
 
             try {
-                const response = await fetch(`${API_BASE.inventory}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
+                const response = await fetch(
+                    `${API_BASE.inventory}/expiring?days=25`,
+                    {
+                        headers: { Authorization: `Bearer ${token}` }
+                    }
+                );
 
                 if (!response.ok) throw new Error('Error al cargar vencimientos');
 
                 const data = await response.json();
 
-                // Filtrar productos próximos a vencer (ej: 30 días)
-                const today = new Date();
-                const daysLimit = 30;
+                appState.expiringData = data;
 
-                const expiring = data
-                    .map(item => {
-                        const expiryDate = new Date(item.expiry_date);
-                        const daysRemaining = Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24));
-                        return { ...item, daysRemaining };
-                    })
-                    .filter(item => item.daysRemaining <= daysLimit);
-
-                appState.expiringData = expiring;
-
-                if (expiring.length === 0) {
+                if (!data || data.length === 0) {
                     document.getElementById('expiringContent').innerHTML = `
                         <div class="empty-state">
                             <h3>No hay productos próximos a vencer</h3>
                         </div>`;
                 } else {
-                    renderExpiring(expiring);
+                    renderExpiring(data);
                 }
             } catch (error) {
                 showAlert(error.message, 'error');
@@ -726,6 +717,7 @@
                 document.getElementById('expiringLoading').style.display = 'none';
             }
         }
+
 
 
         // Renderizar tabla de próximos a vencer
