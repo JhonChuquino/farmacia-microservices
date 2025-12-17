@@ -66,18 +66,19 @@ def search_by_sku(sku):
 @app.route("/inventory/expiring", methods=["GET"])
 @token_required(roles=["ADMIN", "FARMACEUTICO"])
 def expiring_soon():
-    today = datetime.utcnow()
+    days = int(request.args.get("days", 25))
 
-    min_date = today + timedelta(days=8)
-    max_date = today + timedelta(days=10)
+    today = datetime.utcnow()
+    max_date = today + timedelta(days=days)
 
     cursor = db.inventory.find(
         {
             "expiry_date": {
-                "$gte": min_date,
+                "$gte": today,
                 "$lte": max_date
             }
-        }
+        },
+        {"_id": 0}
     ).sort("expiry_date", 1)
 
     response = []
@@ -87,16 +88,19 @@ def expiring_soon():
         days_remaining = (expiry - today).days
 
         response.append({
-            "sku": item.get("sku"),
-            "batch": item.get("batch"),
-            "quantity": item.get("quantity"),
+            "sku": item["sku"],
+            "batch": item["batch"],
+            "quantity": item["quantity"],
             "expiry_date": expiry.strftime("%Y-%m-%d"),
             "days_remaining": days_remaining,
-            "priority": "🟡 A vencer"
+            "priority": (
+                "🔴 Crítica" if days_remaining <= 7 else
+                "🟡 Alta" if days_remaining <= 15 else
+                "🟢 Media"
+            )
         })
 
-    if not response:
-       return jsonify([]), 200
+    return jsonify(response), 200
 
 
 # Registrar nuevo lote
