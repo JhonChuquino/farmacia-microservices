@@ -96,9 +96,7 @@ def expiring_soon():
         })
 
     if not response:
-        return jsonify([{"message": "No products expiring between 8 and 10 days"}]), 200
-
-    return jsonify(response), 200
+       return jsonify([]), 200
 
 
 # Registrar nuevo lote
