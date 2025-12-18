@@ -1,0 +1,61 @@
+name: CI/CD Initial Deployment
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    # 1️⃣ Clonar repo
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    # 2️⃣ Setup Terraform
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+
+    # 3️⃣ Terraform Init
+    - name: Terraform Init
+      working-directory: terraform
+      run: terraform init -input=false
+
+    # 4️⃣ Terraform Apply (infra)
+    - name: Terraform Apply
+      working-directory: terraform
+      run: terraform apply -auto-approve
+
+    # 5️⃣ Obtener IP EC2
+    - name: Get EC2 IP
+      id: ec2
+      working-directory: terraform
+      run: |
+        echo "ip=$(terraform output -raw ec2_public_ip)" >> $GITHUB_OUTPUT
+
+    # 6️⃣ Esperar que EC2 esté lista
+    - name: Wait for EC2
+      run: sleep 60
+
+    # 7️⃣ Deploy app por SSH
+    - name: Deploy App
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ steps.ec2.outputs.ip }}
+        username: ec2-user
+        key: ${{ secrets.EC2_SSH_KEY }}
+        script: |
+          sudo yum update -y
+          sudo amazon-linux-extras install docker -y
+          sudo systemctl start docker
+          sudo usermod -aG docker ec2-user
+
+          sudo curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64 \
+            -o /usr/local/bin/docker-compose
+          sudo chmod +x /usr/local/bin/docker-compose
+
+          git clone https://github.com/${{ github.repository }} app || true
+          cd app
+          git pull origin main
+          docker-compose up -d --build
